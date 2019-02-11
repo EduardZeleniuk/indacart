@@ -1,6 +1,14 @@
+const path = require("path");
+
 module.exports = {
+  pluginOptions: {
+    'style-resources-loader': {
+      preProcessor: 'scss',
+      patterns: [path.resolve(__dirname, "./src/styles/global.scss")]
+    }
+  },
   // disable hashes in filenames
-  filenameHashing: false,
+  // filenameHashing: false,
   chainWebpack: config => {
     config.module
       .rule("vue")
@@ -10,16 +18,15 @@ module.exports = {
 
     if (process.env.NODE_ENV === 'production') {
       // delete HTML related webpack plugins
-      config.plugins.delete('html')
-      config.plugins.delete('preload')
-      config.plugins.delete('prefetch')
+      // config.plugins.delete('html')
+      // config.plugins.delete('preload')
+      // config.plugins.delete('prefetch')
     }
   },
   configureWebpack: {
-    output: {
-      filename: 'app.js',
-      chunkFilename: 'chunkFilename.js'
-    }
+    optimization: {
+      splitChunks: false
+    },
   },
   css: {
     extract: false
