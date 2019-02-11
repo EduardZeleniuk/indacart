@@ -4,7 +4,7 @@
       <a href='#' class='c-indacart__close'>
         <img svg-inline src='../assets/icon-close.svg' alt='close' />
       </a>
-      <img svg-inline class='c-indacart__icon-timer' src='../assets/icon-timer.svg' alt='close' />
+      <!-- <img svg-inline class='c-indacart__icon-timer' src='../assets/icon-timer.svg' alt='close' /> -->
       <span class='c-indacart__timer'>
         24:00
       </span>
