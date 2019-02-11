@@ -1,0 +1,50 @@
+.c-indacart {
+  $border: 3px;
+
+  display: flex;
+  position: relative;
+  max-width: 350px;
+  box-sizing: border-box;
+  background: #fff;
+  background-clip: padding-box; /* !importanté */
+  border: solid $border transparent; /* !importanté */
+  border-radius: 7px;
+ 
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    z-index: -1;
+    margin: -$border; /* !importanté */
+    border-radius: inherit; /* !importanté */
+    background: linear-gradient(to right, red, orange);
+  }
+
+  &__left-block {
+    width: 70px;
+    background-color: #F5B511;
+    padding: 10px 5px;
+  }
+
+  &__close {
+    position: absolute;
+    top: 0; left: 0;
+    width: 25px;
+    height: 25px;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      fill: #fff;
+    }
+  }
+
+  &__icon-timer {
+    width: 40px;
+    height: 40px;
+  }
+
+  &__right-block {
+    width: calc(100% - 70px);
+  }
+}
