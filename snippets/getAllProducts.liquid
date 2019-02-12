@@ -1,0 +1,43 @@
+{% paginate collections.all.products by 50 %}
+  {% for product in collections.all.products %}
+    <script type="application/json" class="productsJSON">
+        {{ product | json }}
+    </script>
+  {% endfor %}
+
+  {% assign pageCount = paginate.pages %}
+{% endpaginate %}
+
+<script>
+  $(document).ready(function () {
+    var allProducts  = [],
+        pageCount    = {{ pageCount | json }},
+        requestCount = 2
+
+    $(document).find('.productsJSON').each(function(){
+        allProducts.push(JSON.parse(this.innerHTML))
+      })
+
+    if (pageCount >= 2) {
+      for (var i = 2; i <= pageCount; i++) {
+        $.ajax({
+          type: 'GET',
+          url: '?page=' + i,
+          dataType: "html"
+        })
+        .done(function(data){
+          $(data).find('.productsJSON').each(function(){
+            allProducts.push(JSON.parse(this.innerHTML))
+          })
+          if (requestCount === pageCount) {
+            console.log(allProducts)
+          } 
+          requestCount++
+        });
+      }
+    } else {
+       console.log(allProducts)
+    }
+  })
+  
+</script>  

@@ -1,0 +1,276 @@
+{% assign products_per_row = section.settings.grid | times: 1 %}
+
+{% case products_per_row %}
+  {% when 2 %}
+    {%- assign max_height = 530 -%}
+    {%- assign grid_item_width = 'medium-up--one-half' -%}
+  {% when 3 %}
+    {%- assign max_height = 345 -%}
+    {%- assign grid_item_width = 'small--one-half medium-up--one-third' -%}
+  {% when 4 %}
+    {%- assign max_height = 250 -%}
+    {%- assign grid_item_width = 'small--one-half medium-up--one-quarter' -%}
+  {% when 5 %}
+    {%- assign max_height = 195 -%}
+    {%- assign grid_item_width = 'small--one-half medium-up--one-fifth' -%}
+{% endcase %}
+
+{% if section.settings.layout == 'grid' %}
+  {%- assign limit = section.settings.grid | times: section.settings.rows -%}
+{% else %}
+  {%- assign limit = 16 -%}
+{% endif %}
+
+{% paginate collection.products by limit %}
+
+<div data-section-id="{{ section.id }}" data-section-type="collection-template">
+  <header class="collection-header">
+
+    {% if section.settings.show_collection_image and collection.image %}
+      <div class="collection-hero">
+        <div class="collection-hero__image ratio-container lazyload js"
+             data-bgset="{% include 'bgset', image: collection.image %}"
+             data-sizes="auto"
+             data-parent-fit="cover"
+             style="background-image: url('{{ collection.image | img_url: '300x300' }});"></div>
+        <noscript>
+          <div class="collection-hero__image" style="background-image: url({{ collection.image | img_url: '2048x600', crop: 'top' }});"></div>
+        </noscript>
+        <div class="collection-hero__title-wrapper">
+          <h1 id="bc-sf-filter-collection-header" class="collection-hero__title page-width">{{ collection.title }}</h1>
+        </div>
+      </div>
+
+      {% if collection.description != blank %}
+        <div id="bc-sf-filter-collection-description" class="rte collection-description page-width">
+          {{ collection.description }}
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="page-width">
+        <div class="section-header text-center">
+          <h1 id="bc-sf-filter-collection-header">{{ collection.title }}</h1>
+          {% if collection.description != blank %}
+            <div id="bc-sf-filter-collection-description" class="rte">
+              {{ collection.description }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="filters-toolbar-wrapper">
+      <div class="page-width">
+        <div class="filters-toolbar">
+          <div class="filters-toolbar__item">
+            <div id="bc-sf-filter-top-display-type"></div>
+          </div>
+
+          <div class="filters-toolbar__item filters-toolbar__item--count">
+            <span class="filters-toolbar__product-count" id="bc-sf-filter-total-product"></span>
+          </div>
+
+          {% if section.settings.sort_enable %}
+          <div class="filters-toolbar__item text-right" id="bc-sf-filter-top-sorting"></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-width" id="Collection">
+    <div id="bc-sf-filter-tree-mobile"></div>
+    <div id="bc-sf-filter-wrapper">
+      <div id="bc-sf-filter-tree"></div>
+      <div id="bc-sf-filter-right">
+        {% if section.settings.layout == 'grid' %}
+
+          <div id="bc-sf-filter-products" class="grid grid--uniform{% if collection.products_count > 0 %} grid--view-items{% endif %}" data-bc-sort="{{ collection.default_sort_by }}">
+            {% for product in collection.products %}
+              <div class="grid__item grid__item--{{section.id}} {{ grid_item_width }}">
+                {% include 'product-card-grid', max_height: max_height %}
+              </div>
+            {% endfor %}
+          </div>
+
+        {% else %}
+
+          <div id="bc-sf-filter-products" data-bc-sort="{{ collection.default_sort_by }}">
+            <ul class="list-view-items">
+              {% for product in collection.products %}
+                <li href="{{ product.url | within: collection }}" class="list-view-item">
+                  {% include 'product-card-list', product: product %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+        {% endif %}
+
+        <div id="bc-sf-filter-bottom-pagination">
+          {% if paginate.pages > 1 %}
+            {% include 'pagination' %}
+          {% endif %}
+        </div>
+        <div id="bc-sf-filter-load-more"></div>
+      </div>
+    </div>
+
+     {% comment %} start-bc-most-popular-template {% endcomment %}    
+        <div class="bc-sf-most-popular-products-wrapper bc-sf-widget-slider-wrapper">
+          <div class="bc-sf-most-popular-products bc-sf-widget-products owl-carousel"></div>
+        </div>        
+      {% comment %} end-bc-most-popular-template {% endcomment %}
+
+      {% comment %} start-bc-recently-viewed-template {% endcomment %}
+        <div class="bc-sf-recent-products-wrapper bc-sf-widget-slider-wrapper">
+          <div class="bc-sf-recent-products bc-sf-widget-products owl-carousel"></div>
+        </div>
+      {% comment %} end-bc-recently-viewed-template {% endcomment %}
+    
+  </div>
+</div>
+
+{% endpaginate %}
+
+<script>
+  // Declare bcSfFilterConfig variable
+  var bcSfFilterConfig = {
+    label: {
+      sorting: {% assign temp = 'collections.sorting.title' | t  %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Sorting" {% endunless %},
+      sorting_best_selling: {% assign temp = 'collections.sorting.best_selling' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Best Selling" {% endunless %},
+      sorting_featured: {% assign temp = 'collections.sorting.featured' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Featured" {% endunless %},
+      sorting_title_ascending: {% assign temp = 'collections.sorting.az' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Alphabetically, A-Z" {% endunless %},
+      sorting_title_descending: {% assign temp = 'collections.sorting.za' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Alphabetically, Z-A" {% endunless %},
+      sorting_price_ascending: {% assign temp = 'collections.sorting.price_ascending' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Lowest Price" {% endunless %},
+      sorting_price_descending: {% assign temp = 'collections.sorting.price_descending' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Highest Price" {% endunless %},
+      sorting_date_ascending: {% assign temp = 'collections.sorting.date_ascending' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Date, Old to New" {% endunless %},
+      sorting_date_descending: {% assign temp = 'collections.sorting.date_descending' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Date, New to Old" {% endunless %},
+      sorting_sale_descending: {% assign temp = 'collections.sorting.sale_descending' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "% Off" {% endunless %},
+      sorting_relevance: {% assign temp = 'collections.sorting.relevance' | t %} {% unless temp contains 'translation missing'  %} {{ temp | json }} {% else %} "Relevance" {% endunless %},
+
+      sale: {{ 'products.product.on_sale' | t | json }},
+      sale_price: {{ 'products.product.sale_price' | t | json }},
+      sold_out: {{ 'products.product.sold_out' | t | json }},
+      vendor: {{ 'products.product.vendor' | t |json }},
+      regular_price: {{ 'products.product.regular_price' | t | json }},
+      items_with_count_one: {{ 'collections.general.items_with_count.one' | t | json}},
+      items_with_count_other: {{ 'collections.general.items_with_count.other' | t | json }},
+      current_page: {{ 'general.pagination.current_page' | t | json }},
+    },
+    custom: {
+      products_per_page: {% if limit %} {{ limit | json }} {% else %} 24 {% endif %},
+      products_per_row: {% if products_per_row %} {{ products_per_row }} {% else %} 4 {% endif %},
+      max_height: {% if max_height %} {{ max_height | json }} {% else %} 250 {% endif %},
+      vendor_enable: {% if section.settings.show_vendor %} {{ section.settings.show_vendor | json }} {% else %} false {% endif %},
+      layout: {% if section.settings.layout %} {{ section.settings.layout | json }} {% else %} "grid" {% endif %}
+    }
+  };
+</script>
+
+      {% schema %}
+      
+  {
+    "name": {
+      "en": "Collection pages",
+      "de": "Kategorie-Seiten",
+      "fr": "Pages de collections"
+    },
+    "settings": [
+      {
+        "type": "select",
+        "id": "layout",
+        "label": {
+          "en": "Layout",
+          "de": "Layout",
+          "fr": "Mise en page"
+        },
+        "default": "grid",
+        "options": [
+          {
+            "value": "grid",
+            "label": {
+              "en": "Grid",
+              "de": "Raster",
+              "fr": "Grille"
+            }
+          },
+          {
+            "value": "list",
+            "label": {
+              "en": "List",
+              "de": "Liste",
+              "fr": "Liste"
+            }
+          }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "grid",
+        "label": {
+          "en": "Products per row (grid only)",
+          "de": "Produkte per Reihe (nur Raster)",
+          "fr": "Produits par rangée (grille uniquement)"
+        },
+        "default": 4,
+        "min": 2,
+        "max": 5,
+        "step": 1
+      },
+      {
+        "type": "range",
+        "id": "rows",
+        "label": {
+          "en": "Rows per page (grid only)",
+          "de": "Reihen per Seite (nur Raster)",
+          "fr": "Rangées par page (grille uniquement)"
+        },
+        "default": 2,
+        "min": 2,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "type": "checkbox",
+        "id": "show_collection_image",
+        "label": {
+          "en": "Show collection image",
+          "de": "Kategorie-Foto anzeigen",
+          "fr": "Afficher l'image de la collection"
+        },
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": {
+          "en": "Show product vendors",
+          "de": "Produkt-Lieferanten anzeigen",
+          "fr": "Afficher les vendeurs"
+        },
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "sort_enable",
+        "label": {
+          "en": "Enable sorting",
+          "de": "Sortieren erlauben",
+          "fr": "Activer le tri"
+        },
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "tags_enable",
+        "label": {
+          "en": "Enable tag filtering",
+          "de": "Tag-Filtern erlauben",
+          "fr": "Activer le filtrage par balises"
+        },
+        "default": true
+      }
+    ]
+  }
+{% endschema %}

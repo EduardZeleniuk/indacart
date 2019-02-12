@@ -1,0 +1,108 @@
+<div class="newsletter-section{% if section.settings.show_background %} index-section--newsletter-background{% endif %}">
+  <div class="page-width">
+    <div class="section-header text-center">
+      {% if section.settings.section_title != blank %}
+        <h2 class="h2">{{ section.settings.section_title | escape }}</h2>
+      {% endif %}
+      {% if section.settings.subheading != blank %}
+        <div class="rte">{{ section.settings.subheading }}</div>
+      {% endif %}
+    </div>
+    {%- assign formId = 'Contact_' | append: section.id -%}
+    {% form 'customer', id: formId, novalidate: 'novalidate' %}
+      <div class="input-group password__input-group{% if form.errors %} input-group--error{% endif %}">
+        {% include 'form-status', formId %}
+
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <input type="email"
+          name="contact[email]"
+          id="{{ formId }}-email"
+          class="input-group__field newsletter__input{% if form.errors %} input--error{% endif %}"
+          value="{% if customer %}{{ customer.email }}{% endif %}"
+          placeholder="{{ 'general.newsletter_form.email_placeholder' | t }}"
+          aria-label="{{ 'general.newsletter_form.email_placeholder' | t }}"
+          aria-required="true"
+          autocorrect="off"
+          autocapitalize="off"
+          {% if form.errors %} aria-invalid="true" aria-describedby="{{ formId }}-email-error"{% endif %}>
+        <span class="input-group__btn">
+          <button type="submit" class="btn newsletter__submit" name="commit" id="Subscribe">
+            <span class="newsletter__submit-text--large">{{ 'general.newsletter_form.submit' | t }}</span>
+          </button>
+        </span>
+        <span id="{{ formId }}-email-error" class="input-error-message">{% include 'icon-error' %} {{ form.errors.translated_fields['email'] | capitalize }} {{ form.errors.messages['email'] }}.</span>
+      </div>
+    {% endform %}
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": {
+      "en": "Newsletter",
+      "de": "Newsletter",
+      "fr": "Newsletter"
+    },
+    "class": "index-section index-section--flush",
+    "settings": [
+      {
+        "type": "text",
+        "id": "section_title",
+        "label": {
+          "en": "Heading",
+          "de": "Titel",
+          "fr": "En-tête"
+        },
+        "default": {
+          "en": "Subscribe to our newsletter",
+          "de": "Unseren Newsletter abonnieren",
+          "fr": "S'inscrire à la newsletter"
+        }
+      },
+      {
+        "type": "richtext",
+        "id": "subheading",
+        "label": {
+          "en": "Subheading",
+          "de": "Unter-Überschrift",
+          "fr": "Sous-titre"
+        },
+        "default": {
+          "en": "<p>A short sentence describing what someone will receive by subscribing</p>",
+          "de": "<p>Eine kurze Beschreibung zum Inhalt des Newsletters</p>",
+          "fr": "<p>Petite phrase qui décrit ce qu'on reçoit en s'inscrivant</p>"
+        }
+      },
+      {
+        "id": "show_background",
+        "type": "checkbox",
+        "label": {
+          "en": "Show background",
+          "de": "Hintergrund anzeigen",
+          "fr": "Afficher l'arrière-plan"
+        },
+        "default": true
+      },
+      {
+        "type": "paragraph",
+        "content": {
+          "en": "Any customers who sign up will have an account created for them in Shopify. [View customers](/admin/customers?query=&accepts_marketing=1)",
+          "de": "Alle Kunden, die sich eintragen, bekommen ein Konto in Shopify. [Kunden ansehen](/admin/customers?query=&accepts_marketing=1)",
+          "fr": "Tous les clients qui s'inscrivent auront un compte créé pour eux sur Shopify. [Voir les clients](/admin/customers?query=&accepts_marketing=1)"
+        }
+      }
+    ],
+    "presets": [{
+      "name": {
+        "en": "Newsletter",
+        "de": "Newsletter",
+        "fr": "Newsletter"
+      },
+      "category": {
+        "en": "Promotional",
+        "de": "Promotional",
+        "fr": "Promotionnel"
+      }
+    }]
+  }
+{% endschema %}

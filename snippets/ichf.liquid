@@ -1,0 +1,1388 @@
+{% comment %}
+Discount codes are her5e
+{% endcomment %}
+
+  {% assign discounts_validate = 'false' %}
+{% assign count = 0 %}
+  {% for code in discounts %}
+  {% assign discounts_validate = 'true' %}
+   {% assign count = count |plus: 1 %}
+   {% capture discount_codes %}{{ discount_codes }}|discount_code:{{ code.code }}{% endcapture %}
+  {% endfor %}
+  
+  {% comment %} Start of dates splitter {% endcomment %}
+  
+{% assign weekdays = "Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday" %}
+  {% assign months1 = "January, February, March, April, May, June, July, August, September, October, November, December" %}     
+  {% assign months = months1 |  split: "," %} 
+
+{% assign comppetitionCount = 0 %}
+{% for line_item in line_items %}
+
+ {% if line_item.product.type  == 'Event -> Tickets' or line_item.product.type  == 'Event -> Workshops'%}
+{% if line_item.product.type  == 'Event -> Workshops' %}
+{% assign workshop = true %}
+{% endif %}
+  {% for p in line_item.properties %}
+   {% if p.first contains 'Event duration' %}
+   {% assign noduration = 'true' %}
+
+   
+    {% assign dates = p.last %}
+   
+    {% capture firstdate %}{{ dates | split: "-" | first }}{% endcapture %}
+    {% capture lastdate %}{{ dates | split: "-" | last }}{% endcapture %} 
+        
+    {% assign firstdatesplit = firstdate | split: " " %}
+    {% assign seconddatesplit = lastdate | split: " " %}
+   
+    {% for date in firstdatesplit %}
+	{% if forloop.index == 1 %}
+	{% assign weekday = date %}
+	{% endif %}
+     {% if forloop.index == 2 %}
+   	  {% assign firstday1 = date | replace: 'th', '' | replace: 'rd', '' | replace: 'st', '' |replace: 'nd', ''%}
+	 {% endif %}
+    {% endfor %}
+        
+    {% for date in seconddatesplit %}
+     {% if forloop.index == 2 %}
+  	  {% assign lastday1 = date |replace: 'th', '' | replace: 'rd', '' | replace: 'st', ''  |replace: 'nd', '' %}
+ 	{% endif %}
+    {% endfor %}
+   
+   
+    {% for month in months %}
+     {% if firstdate contains month %}
+      {% assign firstmonthletters1 = month %}
+      {% assign firstmonth1 = forloop.index %}
+        
+      {% capture finalfirst %}
+       {{ firstday1 }}.{% if forloop.index < 10%}0{%endif%}{{forloop.index}}
+      {% endcapture %}
+     {% endif %}
+     {% if lastdate contains month %}
+      {% assign lastmonth = forloop.index %}
+  	  {% assign lastmonthletters = month %}
+      {% capture finallast %}
+       {{ lastday1 }}.{% if forloop.index < 10%}0{%endif%}{{forloop.index}}
+      {% endcapture %}
+        
+     {% endif %}
+    {% endfor %}
+	{% capture smallSplit %}firstday:{{firstday1}},lastday:{{ lastday1 }},firstmonthletters:{{ firstmonthletters1 }},firstmonthnum:{{ firstmonth1 }},lastmonthnum:{{ lastmonth }},lastmonthletters:{{ lastmonthletters }}{% endcapture %}
+	{% capture allDatesSplit %}{%if allDatesSplit != blank%}{{ allDatesSplit }}|{% endif %}{% unless allDatesSplit contains smallSplit %}{{smallSplit}}{% endunless%}{% endcapture %}
+
+
+  {% endif %}
+  {% endfor %}
+
+{% if workshop and noduration != 'true' %}
+{% unless noduration == 'true' %} 
+{% for variant1 in line_item.product.variants %}
+
+{% if forloop.index == 1 %}
+{% assign firstvar = variant1.option1 %}
+{% endif %}
+{% if forloop.last == true %}
+{% assign lastvar = variant1.option1 %}
+{% endif %}
+{% endfor %}
+
+{% capture ordernumberis %} {{ order_number }} {% endcapture %}
+{% if ordernumberis contains "2598" %}
+{% capture p2 %}event_date_string: {{ firstvar }} - {{ firstvar }}{% endcapture %}
+{% else %}
+{% capture p2 %}event_date_string: {{ firstvar }} - {{ lastvar }}{% endcapture %}
+{% endif %}
+{% assign p = p2 | split: ':' %}
+   {% if p.first contains 'event_date_string' %}
+   
+
+    {% capture firstdate %}{{ dates | split: "-" | first }}{% endcapture %}
+    {% capture lastdate %}{{ dates | split: "-" | last }}{% endcapture %} 
+
+    {% assign firstdatesplit = firstdate | split: " " %}
+    {% assign seconddatesplit = lastdate | split: " " %}
+   
+    {% for date in firstdatesplit %}
+	{% if forloop.index == 1 %}
+	{% assign weekday = date %}
+	{% endif %}
+     {% if forloop.index == 2 %}
+   	  {% assign firstday1 = date | replace: 'th', '' | replace: 'rd', '' | replace: 'st', '' |replace: 'nd', ''%}
+	 {% endif %}
+    {% endfor %}
+
+    {% for date in seconddatesplit %}
+     {% if forloop.index == 2 %}
+  	  {% assign lastday1 = date |replace: 'th', '' | replace: 'rd', '' | replace: 'st', ''  |replace: 'nd', '' %}
+ 	{% endif %}
+    {% endfor %}
+   
+   
+    {% for month in months %}
+     {% if firstdate contains month %}
+      {% assign firstmonthletters1 = month %}
+      {% assign firstmonth1 = forloop.index %}
+        
+      {% capture finalfirst %}
+       {{ firstday1 }}.{% if forloop.index < 10%}0{%endif%}{{forloop.index}}
+      {% endcapture %}
+     {% endif %}
+     {% if lastdate contains month %}
+      {% assign lastmonth = forloop.index %}
+  	  {% assign lastmonthletters = month %}
+      {% capture finallast %}
+       {{ lastday1 }}.{% if forloop.index < 10%}0{%endif%}{{forloop.index}}
+      {% endcapture %}
+     {% endif %}
+    {% endfor %}
+	{% capture smallSplit %}firstday:{{firstday1}},lastday:{{ lastday1 }},firstmonthletters:{{ firstmonthletters1 }},firstmonthnum:{{ firstmonth1 }},lastmonthnum:{{ lastmonth }},lastmonthletters:{{ lastmonthletters }}{% endcapture %}
+	{% capture allDatesSplit %}{%if allDatesSplit != blank%}{{ allDatesSplit }}|{% endif %}{% unless allDatesSplit contains smallSplit %}{{smallSplit}}{% endunless%}{% endcapture %}
+
+
+  {% endif %}
+
+{% endunless %}
+{% endif %} 
+
+  {% elsif line_item.product.type == 'Event -> Competition Entry' %}
+  
+  {% assign comppetitionCount = comppetitionCount |plus: 1 %}
+  
+  {% comment %} Competition entry {% endcomment %}
+
+  {% capture competitions %}
+  {{ competitions }}
+
+  {% for a in (1..line_item.quantity) %}
+  <div style="float: left; width: 100%; border: 1px solid black; margin: 10px 0; height: 130.9mm;">  
+
+ <table style="margin: 0;  width: calc(100% -  10px);">
+ <tr>
+ <td rowspan="2" style="width: 20%; position: relative; text-align: left; vertical-align: top;padding: 10px;"> 
+ <img src="https://cdn.shopify.com/s/files/1/2505/7816/files/Cake-International-Competition-Entry-v2.png" style="max-height: 125.5mm;"/>
+ </td>
+  <td colspan="2">
+ <p style="float: left; display: block; text-align: center; margin: 10px 5px;"><b style=" font-size: 20px!important;">{{ line_item.product.title |remove: 'VIP |' |remove: 'HOUSE |' |remove: 'House |' |remove: 'WORKSHOP |' |remove: 'Workshop |' |replace: '|', '-' | truncate: 133 }}</b></p>
+ <p style="float: left; display: block; text-align: center; margin: 10px 5px;"><b style=" font-size: 14px!important;">{{ line_item.variant.title |remove: 'VIP |' |remove: 'HOUSE |' |remove: 'House |' |remove: 'WORKSHOP |' |remove: 'Workshop |' |replace: '|', '-'}}</b></p>
+ </td>
+
+</tr>
+<tr>
+
+ <td style="width: 50%; text-align: left; vertical-align: top;padding: 0 20px; padding-left: 5px;">
+   {% for p in line_item.properties %}
+   {% if p.first == 'Entrant First Name' %}
+   {% capture props1 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+   {% elsif p.first == 'Entrant Last Name'%}
+   {% capture props2 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+   {% elsif p.first == 'Team name'%}
+   {% capture props3 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+   {% elsif p.first == 'Entrant Date of Birth (dd/mm/yyyy)'%}
+   {% capture props4 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+    {% elsif p.first == 'Full Name of Parent/Guardian (if entrant under 18)'%}
+   {% capture props5 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+    {% elsif p.first == 'Entrant Address'%}
+   {% capture props6 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+    {% elsif p.first == 'Entrant Post Code'%}
+   {% capture props7 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+    {% elsif p.first == 'Entrant Email Address'%}
+   {% capture props8 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+    {% elsif p.first == 'Entrant Phone Number'%}
+   {% capture props9 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+    {% elsif p.first == 'Country'%}
+   {% capture props10 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+    {% elsif p.first == 'Location'%}
+   {% capture props11 %}
+   <p style="float: left;     width: 100%; margin: 5px 0;">{{ p.first }}: {{ p.last }}  </p><br/>
+   {% endcapture %}
+   {% endif %}
+   {% endfor %}
+   {{ props1 }}{{ props2}}
+   {{ props3 }}{{ props4}}
+   {{ props5 }}{{ props6}}
+   {{ props7 }}{{ props8}}
+   {{ props9 }}{{ props10}}
+   {{ props11}}
+   <br/>
+   </td>
+ <td style="width: 29%;vertical-align: top;padding: 0 10px;position:  relative;top: -10px;">
+ {% capture ticket_id %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}{% endcapture %}
+  
+  {% assign qr_code_url = 'https://ichf-events.default.ichfevents.uk0.bigv.io/?bcid=qrcode&text='  | url_decode %}
+  <b style="    line-height: 30px;"> COMPETITION entry</b>
+  <img src="{{ qr_code_url }}{{ ticket_id | url_encode }}" height="100" width="100" class="order-list__qr-code" />
+ 
+  </td>
+ </tr>
+ </table>
+</div>
+<div style="width: 100%; position: relative; border-bottom: 1mm dashed grey; margin: 2mm 0; float: left">
+<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/nojica.png?11924686762284366152"style="position: absolute; top: 0;    transform: translateY(calc(-50% + 2px));; left: 0;"/>
+</div> 
+{% endfor %}
+
+  {% endcapture %}
+ {% endif %}
+{% endfor %}
+
+
+  {% assign allDatesSplit = allDatesSplit |split: '|'%}
+
+  {% for splitItem in allDatesSplit %}
+
+{% assign i = 0 %}
+  {% assign splitedItem = splitItem |split: ',' %}
+
+  {% for spVar in splitedItem %}
+
+  {% if spVar contains 'firstday' %}
+  {% assign firstday = spVar |split: ':' |last %}
+
+  {% elsif spVar contains 'lastday' %}
+  {% assign lastday = spVar |split: ':' |last %}
+  {% elsif spVar contains 'firstmonthletters' %}
+  {% assign firstmonthletters = spVar |split: ':' |last |strip %}
+  {% elsif spVar contains 'firstmonthnum' %}
+  {% assign firstmonth = spVar |split: ':' |last %}
+  {% elsif spVar contains 'lastmonthnum' %}
+  {% assign lastmonth = spVar |split: ':' |last %}
+  {% elsif spVar contains 'lastmonthletters' %}
+  {% assign lastmonthletters = spVar |split: ':' |last |strip %}
+  {% endif %}
+  
+  {% endfor %}
+
+{% assign firstday = firstday | plus: 0 %}
+{% assign lastday = lastday | plus: 0 %}
+
+{% if firstmonth == lastmonth %}
+
+ {% assign difference = lastday | minus: firstday | plus: 1 %}
+
+ {% for i in (0..49) %}
+  {% if i >= difference %}
+   {{ break }}
+  {% else %} 
+
+{%comment%}
+start
+{%endcomment%}
+
+ {% assign counter = 0 %}
+
+
+{% for line_item in line_items %}
+
+ {% unless line_item.product.type == 'Event -> Competition Entry' or line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |'%}
+
+
+{% assign splittedWeekDays = weekdays | split: ',' %}
+
+  {% for a in (1..line_item.quantity) %}
+
+ {% assign admit = ''%}
+ {% assign line_admit = ''%}
+ {% assign line_descriptions = ''%}
+ {% assign location = '' %}
+  {% assign earlyNote = '' %}
+ {% assign venue = '' %}
+ {% assign counter = counter |plus: 1 %}
+{% assign hideDates = 0 %}
+ {% for p in line_item.properties %}
+ 		{% if p.first contains '_Early bird discount'  %}
+ {% capture earlyNote %}{{ p |first |remove: '_' }}: {{ p |last }}{% endcapture %}
+
+ {% endif %}  
+  {% unless p.first contains 'Event duration' %}
+   {% unless p.first contains 'Location' %}
+   
+   {% if p.first contains '_hide dates' %}
+   {% assign hideDates = 1 %}
+   {% endif %}
+
+   {% if line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+   {% assign paidDates = line_item.variant.title %}
+
+   {% if  p.first contains 'Ticket Type' %}
+     {% assign line_admit = p.last %}
+	 {% endif %}
+	 {% unless p.first contains '_' %}
+	 {% capture line_descriptions %}
+	  {{ line_descriptions }}
+   <p style="float: left;    margin:  0 !important;   width: 100%;">{{ p.first }}: {% if p.first contains "start time" %}{% for tag in line_item.product.tags %}{% if tag contains 'event_work_time' %} {{ tag | split: ':' | last }} {% endif %} {% endfor %}{% elsif p.first contains "Room" %}{% for tag in line_item.product.tags %}{% if tag contains 'event_work_room' %} {{ tag | split: ':' | last }} {% endif %} {% endfor %}{% else %}{{ variant.p}}{{ p.last }} {% endif %}</p><br/>     {% endcapture %}
+
+	 {% endunless %}
+    {% else %}
+	{% if p.first contains 'Dates' %}
+     {% assign paidDates = p.last %}
+    {% elsif  p.first == 'Ticket Type' %}
+     {% assign line_admit = p.last %}
+    {% elsif p.first contains 'Location'%}
+     {% assign location = p.last | split: ',' |first %}
+     {% assign venue = p.last | split: ',' |last %}
+    {% else %}
+	{% unless p.first contains '_' %}
+	 {% capture line_descriptions %}
+	  {{ line_descriptions }}
+   <p style="float: left;     width: 100%;">{{ p.first }}: {{ p.last }}  </p><br/>
+     {% endcapture %}
+	 {% endunless %}
+    {% endif %}
+	{% endif %}
+   {% endunless %}
+  {% endunless %}
+ {% endfor %}
+
+ {% if line_admit != blank %}
+   {% assign admit = line_item.variant.title | split: '/' | first %}
+ {% else %}
+  {% assign admit = line_item.variant.title | split: '/' | first %}
+ {% endif %}
+
+ {% assign paidDates = paidDates | split: ', ' %}
+ {% assign loopCounter = -1 %}
+ {% for paidDate in paidDates %}
+
+ {% assign paidDateYear = paidDate |split: ' ' |last%}
+
+{% assign paidDateDay = paidDate |split: ' ' |first %}
+ {% capture paidDateStrip %}{{ paidDate |remove: paidDateYear |remove: paidDateDay | replace: 'th', '' | replace: 'rd', '' | replace: 'st', '' |strip }}{% endcapture %}
+
+ {% assign paidDateCounter = forloop.index %}
+{% for splittedWeekDay in splittedWeekDays %}
+ {% assign loop = 0 %}
+{% assign splittedWeeDay = splittedWeekDay | strip |handleize %}
+{% assign weekday = weekday | strip |downcase%}
+{% if splittedWeeDay == weekday %}
+
+{% assign loopCounter = loopCounter |plus: 1 %}
+
+{% assign loop = forloop.index |plus: loopCounter |minus: 1 %}
+
+{% assign ticketDay = splittedWeekDays[loop] |strip %}
+
+{% endif %}
+{% endfor %} 
+
+ {% assign paidDatesplit = paidDateStrip | split: " " |first | plus:0 %}
+
+ {% assign paidMonthplit = paidDate |remove: paidDateYear |remove: paidDateDay  | split: " " |last |strip %}
+  {% assign curDay = firstday |plus: i %}
+
+  {% if paidDatesplit == curDay and paidMonthplit == lastmonthletters%}
+
+  {% capture ticket_id %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}{% endcapture %}
+
+{% capture ticket_id_day %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}-{{curDay}}{% endcapture %}
+
+{% unless ticket_ids contains ticket_id_day %}
+{% capture ticket_ids %}{{ ticket_ids }}[[{{ticket_id_day}}]]{% endcapture %}
+
+
+
+{% capture ticketsOrder %}
+
+   {{ ticketsOrder }}
+  {% if hideDates == 0 %}
+<div style="float: left; width: 100%; border: 1px solid black; margin: 10px 0; height: 59.45mm;">  
+  {% for tag in line_item.product.tags %}
+   {% if tag contains "event_location" %}
+    {% assign location = tag |replace: 'event_location:' %}
+   {% elsif tag contains 'event_venue' %}
+   {% assign venue = tag| remove: 'event_venue:' %}
+   
+   {% elsif tag contains 'event_date_string' %}
+   {% assign dates = tag| remove: 'event_date_string:' %}
+  {% endif %}
+ {% endfor %}
+
+ <table style="margin: 0;  width: calc(100% -  10px);">
+ <tr>
+  <td rowspan="2" style="width: 20%; position: relative; text-align: left; vertical-align: top;padding: 10px;"> 
+ <img src="https://cdn.shopify.com/s/files/1/2505/7816/files/{% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}vip{% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}house{%elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |' %}demo2{%elsif line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |' %}merchandise{%else%}{{paidDateDay |handleize }}{%endif%}.jpg" style="max-height: 53.5mm;"/>
+ </td>
+ <td colspan="2">
+ <p style="float: left; display: block; text-align: left; margin: 5px;">
+  <b style=" font-size: 20px!important;">
+    {% if line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+      {% assign merchttl = line_item.product.title | split: '|' %}
+      {{ merchttl[1] }}
+      {{ merchttl[2] }}
+    {% else %}
+      {{ line_item.product.title |remove: 'VIP |' |remove: 'HOUSE |' |remove: 'House |' |remove: 'WORKSHOP |' |remove: 'Workshop |' |remove: 'MERCHANDISE |' |remove: 'Merchandise |' |replace: '|', '-'}}
+    {% endif %}
+  </b>
+  </p>
+ </td>
+ </tr>
+ <tr>
+ <td style="width: 50%; text-align: left; vertical-align: top;padding: 0 20px; padding-left: 5px;">
+  {% unless line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ venue }} - {{ location }}</p>
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ dates }} </p>
+  {% endunless %}
+  {{ line_descriptions }}
+    {% if discounts_validate == 'false' %}
+   {% unless line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+   <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{earlyNote}}</p>
+   {% endunless %}
+   {% endif %}
+{% unless line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>VALID:</b> {{paidDate}} ONLY </p> 
+  {% endunless %}
+   {% if line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>PRICE PER ITEM:</b> {{ line_item.product.price | times: 100 | money }} </p>
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>NAME:</b> {{ customer.name }} </p>
+ {% endif %}
+ <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>BOOKING:</b> {{ticket_id}} </p>
+{% unless line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>TICKET TYPE:</b> {{admit}} </p>
+  {% endunless %}
+   </td>
+ <td style="width: 29%;vertical-align: top;padding: 0 10px;position:  relative;top: -10px;">
+  {% assign qr_code_url = 'https://ichf-events.default.ichfevents.uk0.bigv.io/?bcid=qrcode&text='  | url_decode %} 
+  
+  {% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}
+  <b> VIP ticket</b>
+ {% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}
+ <b> HOUSE ticket</b>
+ {% elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+ <b> WORKSHOP ticket</b>
+ {% elsif line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+ <b></b>
+ {% else %}
+ <b> REGULAR ticket</b>
+  {% endif %}
+  {% if line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+    <img src="{{ qr_code_url }}{{ ticket_id | url_encode }}{% if count > 0 %}{{ discount_codes }}{% endif %}" height="100" width="100" class="order-list__qr-code" />
+  {% else %}
+    <p style="margin: 0">
+      {% unless line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+      Ticket Type: <span style="font-size: 16px; text-transform: uppercase">{{ admit }}</span> </br>  
+      
+      {% endunless %}
+      on {{paidDate}} only</p><img src="{{ qr_code_url }}{{ ticket_id | url_encode }}{% if count > 0 %}{{ discount_codes }}{% endif %}|day:{{ paidDate |replace: " ", "_" }}" height="100" width="100" class="order-list__qr-code" />
+  {% endif %}
+</td>
+ </tr>
+ </table>
+</div>
+<div style="width: 100%; position: relative; border-bottom: 1mm dashed grey; margin: 2mm 0; float: left">
+<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/nojica.png?11924686762284366152"style="position: absolute; top: 0;    transform: translateY(calc(-50% + 2px));; left: 0;"/>
+</div> 
+{% endif %}
+ {% endcapture %}
+{% endunless %}
+  {% endif %}
+    {% endfor %}
+ {% endfor %}
+ {% endunless %}
+{% endfor %}
+
+ 
+  {% endif %}
+     
+ {% endfor %}
+ 
+ {%comment%}
+end
+{%endcomment%}
+ 
+{% else %}
+
+ {% if firstmonth == "1" or firstmonth == "3" or firstmonth == "5" or firstmonth == "7" or firstmonth == "8" or firstmonth == "10" or firstmonth == "12" %}
+  {% assign monthlength = 31 %}
+ {% elsif firstmonth == "4" or firstmonth == "6" or firstmonth == "9" or firstmonth == "11" %}
+  {% assign monthlength = 30 %}
+ {% else %}
+  {% assign monthlength = 29 %}
+ {% endif %}
+
+ {% assign difference = monthlength | minus: firstday | plus: lastday | plus: 1%}
+ {% assign middifference = firstday %}
+ {% assign startagain  = 1 %}
+
+ {% for i in (0..49) %}
+
+  {% if i >= middifference %}
+		
+
+   {% assign counter = 0 %}
+
+   {% for line_item in line_items %}
+
+     {% unless line_item.product.type == 'Event -> Competition Entry' or line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |'%}
+
+
+	{% assign splittedWeekDays = weekdays | split: ',' %}
+      {% for a in (1..line_item.quantity) %}
+        {% assign admit = ''%}
+        {% assign line_admit = ''%}
+        {% assign line_descriptions = ''%}
+        {% assign location = '' %}
+        {% assign venue = '' %}
+		{% assign hideDates = 0 %}
+		{% assign earlyNote = '' %}
+        {% assign counter = counter |plus: 1 %}
+
+        {% for p in line_item.properties %}
+		{% if p.first contains '_Early bird discount'  %}
+ {% capture earlyNote %}{{ p |first |remove: '_' }}: {{ p |last }}{% endcapture %}
+         
+ {% endif %}  
+          {% unless p.first contains 'Event duration' %}
+           {% unless p.first contains 'Location' %}
+		   
+		   {% if p.first contains '_hide dates' %}
+   {% assign hideDates = 1 %}
+   {% endif %}
+            {% if line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+              {% assign paidDates = line_item.variant.title %}
+                {%if  p.first contains 'Ticket Type' %}
+                 {% assign line_admit = p.last %}
+                {% endif %}
+				{% unless p.first contains '_' %}
+	 {% capture line_descriptions %}
+	  {{ line_descriptions }}
+   <p style="float: left;     margin:  0 !important;  width: 100%;">{{ p.first }}: {{ p.last }}  </p><br/>
+     {% endcapture %}
+	 {% endunless %}
+            {% else %}
+              {% if p.first contains 'Dates' %}
+               {% assign paidDates = p.last %}
+              {% elsif  p.first contains 'Ticket Type' %}
+               {% assign line_admit = p.last %}
+              {% elsif p.first contains 'Location'%}
+               {% assign location = p.last | split: ',' |first %}
+               {% assign venue = p.last | split: ',' |last %}
+              {% else %}
+	           {% unless p.first contains '_' %}
+	            {% capture line_descriptions %}
+	             {{ line_descriptions }}
+                   <p style="float: left;     width: 100%;">{{ p.first }}: {{ p.last }}  </p><br/>
+                {% endcapture %}
+	           {% endunless %}
+              {% endif %}
+	        {% endif %}
+           {% endunless %}
+          {% endunless %}
+        {% endfor %}
+        {% if line_admit != blank %}
+          {% assign admit = line_item.variant.title | split: '/' | first %}
+        {% else %}
+         {% assign admit = line_item.variant.title | split: '/' | first %}
+        {% endif %}
+        {% assign paidDates = paidDates | split: ', ' %}
+        {% assign loopCounter = -1 %}
+
+        {% for paidDate in paidDates %}
+         {% assign paidDateYear = paidDate |split: ' ' |last%}
+         {% assign paidDateDay = paidDate |split: ' ' |first %}
+         {% capture paidDateStrip %}{{ paidDate |remove: paidDateYear |remove: paidDateDay | replace: 'th', '' | replace: 'rd', '' | replace: 'st', '' |strip }}{% endcapture %}
+         {% assign paidDateCounter = forloop.index %}
+         {% for splittedWeekDay in splittedWeekDays %}
+          {% assign loop = 0 %}
+          {% assign splittedWeeDay = splittedWeekDay | strip |handleize %}
+          {% assign weekday = weekday | strip |downcase%}
+          {% if splittedWeeDay == weekday %}
+           {% assign loopCounter = loopCounter |plus: 1 %}
+           {% assign loop = forloop.index |plus: loopCounter |minus: 1 %}
+           {% assign ticketDay = splittedWeekDays[loop] %}
+          {% endif %}
+        {% endfor %}
+        {% assign paidDatesplit = paidDateStrip | split: " " |first | plus:0 %}
+		{% assign paidMonthplit = paidDate |remove: paidDateYear |remove: paidDateDay  | split: " " |last |strip %}
+
+        {% assign curDay = i %}
+
+  {% if paidDatesplit == curDay and paidMonthplit == firstmonthletters%}
+         {% capture ticket_id %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}{% endcapture %}
+
+{% capture ticket_id_day %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}-{{curDay}}{% endcapture %}
+
+{% unless ticket_ids contains ticket_id_day %}
+{% capture ticket_ids %}{{ ticket_ids }}[[{{ticket_id_day}}]]{% endcapture %}
+
+         {% capture ticketsOrder %}
+
+          {{ ticketsOrder }}
+		  {% if hideDates == 0 %}
+<div style="float: left; width: 100%; border: 1px solid black; margin: 10px 0;height: 59.45mm;">  
+  {% for tag in line_item.product.tags %}
+   {% if tag contains "event_location" %}
+    {% assign location = tag |replace: 'event_location:' %}
+   {% elsif tag contains 'event_venue' %}
+   {% assign venue = tag| remove: 'event_venue:' %}
+   
+   {% elsif tag contains 'event_date_string' %}
+   {% assign dates = tag| remove: 'event_date_string:' %}
+  {% endif %}
+ {% endfor %}
+
+ <table style="margin: 0;  width: calc(100% -  10px);">
+ <tr>
+ <td rowspan="2" style="width: 20%; position: relative; text-align: left; vertical-align: top;padding: 10px;"> 
+ <img src="https://cdn.shopify.com/s/files/1/2505/7816/files/{% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}vip{% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}house{%elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |' %}demo2{%else%}{{paidDateDay |handleize }}{%endif%}.jpg" style="max-height: 53.5mm;"/>
+ </td>
+ <td colspan="2">
+ <p style="float: left; display: block; text-align: left; margin: 5px;"><b style=" font-size: 20px!important;">{{ line_item.product.title |remove: 'VIP |' |remove: 'HOUSE |' |remove: 'House |' |remove: 'WORKSHOP |' |remove: 'Workshop |' |replace: '|', '-' | truncate: 133}}</b></p>
+ </td>
+ </tr>
+ <tr>
+ <td style="width: 50%; text-align: left; vertical-align: top;padding: 0 20px; padding-left: 5px;">
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ venue }} - {{ location }}</p>
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ dates }} </p>
+  {{ line_descriptions }}
+    {% if discounts_validate == 'false' %}
+ <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{earlyNote}}</p>
+ {% endif %}
+<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>VALID:</b> {{paidDate}} ONLY </p> 
+ <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>BOOKING:</b> {{ticket_id}} </p>
+<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>TICKET TYPE:</b> {{admit}} </p>
+   </td>
+ <td style="width: 29%;vertical-align: top;padding: 0 10px;position:  relative;top: -10px;">
+  {% assign qr_code_url = 'https://ichf-events.default.ichfevents.uk0.bigv.io/?bcid=qrcode&text='  | url_decode %} 
+  
+  {% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}
+  <b> VIP ticket</b>
+ {% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}
+ <b> HOUSE ticket</b>
+ {% elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+ <b> WORKSHOP ticket</b>
+ {% else %}
+ <b> REGULAR ticket</b>
+  {% endif %}
+  <p style="margin: 0">
+  {% unless line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+  Ticket Type: <span style="font-size: 16px; text-transform: uppercase">{{ admit }}</span> </br>  
+  
+  {% endunless %}
+  on {{paidDate}} only</p><img src="{{ qr_code_url }}{{ ticket_id | url_encode }}{% if count > 0 %}{{ discount_codes }}{% endif %}|day:{{ paidDate |replace: " ", "_" }}" height="100" width="100" class="order-list__qr-code" />
+  </td>
+ </tr>
+ </table>
+</div>
+<div style="width: 100%; position: relative; border-bottom: 1mm dashed grey; margin: 2mm 0; float: left">
+<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/nojica.png?11924686762284366152"style="position: absolute; top: 0;    transform: translateY(calc(-50% + 2px));; left: 0;"/>
+</div> 
+{% endif %}
+         {% endcapture %}
+{% endunless %}
+        {% endif %}
+      {% endfor %}
+     {% endfor %}
+    {% endunless %}
+   {% endfor %}
+
+   {% if startagain >= lastday %}
+  	{% break %}
+   {% endif %}
+  
+  {% assign startagain = startagain | plus: 1 %}
+  
+  {%comment%}
+end
+{%endcomment%}
+  
+ {% else %} 
+		 
+		
+		
+ {% assign counter = 0 %}
+{% for line_item in line_items %}
+{% unless line_item.product.type == 'Event -> Competition Entry' or line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |'%}
+{% assign splittedWeekDays = weekdays | split: ',' %}
+
+  {% for a in (1..line_item.quantity) %}
+ {% assign admit = ''%}
+ {% assign line_admit = ''%}
+ {% assign line_descriptions = ''%}
+ {% assign location = '' %}
+ {% assign venue = '' %}
+ {% assign hideDates = 0 %}
+ {% assign counter = counter |plus: 1 %}
+ {% for p in line_item.properties %}
+ {% if line_item contains '_Early bird discount' and discounts_validate == 'false' %}
+ {% capture earlyNote %}{{ line_item |first |remove: '_' }}: {{ line_item |last }}{% endcapture %}
+ {% else%}
+ {% assign earlyNote = '' %}
+ {% endif %}
+
+  {% unless p.first contains 'Event duration' %}
+   {% unless p.first contains 'Location' %}
+   
+   {% if p.first contains '_hide dates' %}
+   {% assign hideDates = 1 %}
+   {% endif %}
+   
+   {% if line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+   {% assign paidDates = line_item.variant.title %}
+   {% if  p.first contains 'Ticket Type' %}
+     {% assign line_admit = p.last %}
+	 {% endif %}
+	 {% unless p.first contains '_' %}
+	 {% capture line_descriptions %}
+	  {{ line_descriptions }}
+   <p style="float: left;  margin:  0 !important;   width: 100%;">{{ p.first }}: {{ p.last }}  </p><br/>
+     {% endcapture %}
+	 {% endunless %}
+    {% else %}
+	{% if p.first contains 'Dates' %}
+     {% assign paidDates = p.last %}
+    {% elsif  p.first == 'Ticket Type' %}
+     {% assign line_admit = p.last %}
+    {% elsif p.first contains 'Location'%}
+     {% assign location = p.last | split: ',' |first %}
+     {% assign venue = p.last | split: ',' |last %}
+    {% else %}
+	{% unless p.first contains '_' %}
+	 {% capture line_descriptions %}
+	  {{ line_descriptions }}
+   <p style="float: left;     width: 100%;">{{ p.first }}: {{ p.last }}  </p><br/>
+     {% endcapture %}
+	 {% endunless %}
+    {% endif %}
+	{% endif %}
+   {% endunless %}
+  {% endunless %}
+ {% endfor %}
+ {% if line_admit != blank %}
+    {% assign admit = line_item.variant.title | split: '/' | first %}
+ {% else %}
+  {% assign admit = line_item.variant.title | split: '/' | first %}
+ {% endif %}
+ 
+ {% assign paidDates = paidDates | split: ', ' %}
+ {% assign loopCounter = -1 %}
+ {% for paidDate in paidDates %}
+ {% assign paidDateYear = paidDate |split: ' ' |last%}
+{% assign paidDateDay = paidDate |split: ' ' |first %}
+ {% capture paidDateStrip %}{{ paidDate |remove: paidDateYear |remove: paidDateDay | replace: 'th', '' | replace: 'rd', '' | replace: 'st', '' |strip }}{% endcapture %}
+ 
+ {% assign paidDateCounter = forloop.index %}
+
+{% for splittedWeekDay in splittedWeekDays %}
+ {% assign loop = 0 %}
+{% assign splittedWeeDay = splittedWeekDay | strip |handleize %}
+{% assign weekday = weekday | strip |downcase%}
+
+{% if splittedWeeDay == weekday %}
+{% assign loopCounter = loopCounter |plus: 1 %}
+
+{% assign loop = forloop.index |plus: loopCounter |minus: 1 %}
+
+{% assign ticketDay = splittedWeekDays[loop] |strip %}
+
+{% endif %}
+{% endfor %} 
+ {% assign paidDatesplit = paidDateStrip | split: " " |first | plus:0 %}
+ {% assign paidMonthplit = paidDate |remove: paidDateYear |remove: paidDateDay  | split: " " |last |strip %}
+
+  {% assign curDay = i %}
+
+  {% if paidDatesplit == curDay and paidMonthplit == lastmonthletters%}
+  
+  {% capture ticket_id %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}{% endcapture %}
+
+{% capture ticket_id_day %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}-{{curDay}}{% endcapture %}
+
+{% unless ticket_ids contains ticket_id_day %}
+{% capture ticket_ids %}{{ ticket_ids }}[[{{ticket_id_day}}]]{% endcapture %}
+
+{% capture ticketsOrder %}
+   {{ ticketsOrder }}
+   {% if hideDates == 0 %}
+<div style="float: left; width: 100%; border: 1px solid black; margin: 10px 0; height: 59.45mm;">  
+  {% for tag in line_item.product.tags %}
+   {% if tag contains "event_location" %}
+    {% assign location = tag |replace: 'event_location:' %}
+   {% elsif tag contains 'event_venue' %}
+   {% assign venue = tag| remove: 'event_venue:' %}
+   
+   {% elsif tag contains 'event_date_string' %}
+   {% assign dates = tag| remove: 'event_date_string:' %}
+  {% endif %}
+ {% endfor %}
+
+ <table style="margin: 0;  width: calc(100% -  10px);">
+ <tr>
+  <td rowspan="2" style="width: 20%; position: relative; text-align: left; vertical-align: top;padding: 10px;"> 
+ <img src="https://cdn.shopify.com/s/files/1/2505/7816/files/{% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}vip{% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}house{%elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |' %}demo2{%else%}{{paidDateDay |handleize }}{%endif%}.jpg" style="max-height: 53.5mm;"/>
+ </td>
+ <td colspan="2">
+ <p style="float: left; display: block; text-align: left; margin: 5px;"><b style=" font-size: 20px!important;">{{ line_item.product.title |remove: 'VIP |' |remove: 'HOUSE |' |remove: 'House |' |remove: 'WORKSHOP |' |remove: 'Workshop |' |replace: '|', '-' | truncate: 133}}</b></p>
+ </td>
+ </tr>
+ <tr>
+ <td style="width: 50%; text-align: left; vertical-align: top;padding: 0 20px; padding-left: 5px;">
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ venue }} - {{ location }}</p>
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ dates }} </p>
+  {{ line_descriptions }}
+    {% if discounts_validate == 'false' %}
+   <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{earlyNote}}</p>
+{% endif %}
+<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>VALID:</b> {{paidDate}} ONLY </p> 
+ <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>BOOKING:</b> {{ticket_id}} </p>
+<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>TICKET TYPE:</b> {{admit}} </p>
+   </td>
+ <td style="width: 29%;vertical-align: top;padding: 0 10px;position:  relative;top: -10px;">
+  {% assign qr_code_url = 'https://ichf-events.default.ichfevents.uk0.bigv.io/?bcid=qrcode&text='  | url_decode %} 
+  
+  {% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}
+  <b> VIP ticket</b>
+ {% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}
+ <b> HOUSE ticket</b>
+ {% elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+ <b> WORKSHOP ticket</b>
+ {% else %}
+ <b> REGULAR ticket</b>
+  {% endif %}
+  <p style="margin: 0">
+  {% unless line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+  Ticket Type: <span style="font-size: 16px; text-transform: uppercase">{{ admit }}</span> </br>  
+  
+  {% endunless %}
+  on {{paidDate}} only</p><img src="{{ qr_code_url }}{{ ticket_id | url_encode }}{% if count > 0 %}{{ discount_codes }}{% endif %}|day:{{ paidDate |replace: " ", "_" }}" height="100" width="100" class="order-list__qr-code" />
+ </td>
+ </tr>
+ </table>
+</div>
+<div style="width: 100%; position: relative; border-bottom: 1mm dashed grey; margin: 2mm 0; float: left">
+<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/nojica.png?11924686762284366152"style="position: absolute; top: 0;    transform: translateY(calc(-50% + 2px));; left: 0;"/>
+</div> 
+{% endif %}
+ {% endcapture %}
+{% endunless %}
+  {% endif %}
+    {% endfor %}
+ {% endfor %}
+ {% endunless %}
+{% endfor %}
+
+ 
+		 
+ {% endif %}
+
+ {% endfor %}
+{% endif %}
+{% endfor %}
+
+{%comment%}
+end
+{%endcomment%}
+
+{% for line_item in line_items %}
+{% assign hideDates = 0 %}
+{% assign admit = ''%}
+ {% assign line_admit = ''%}
+ {% assign line_descriptions = ''%}
+ {% assign location = '' %}
+ {% assign venue = '' %}
+ {% assign earlyNote = '' %}
+{% for p in line_item.properties %}
+{% if p.first contains '_hide dates'%}
+{% assign hideDates = 1 %}
+{% endif %}
+{% endfor %}
+
+{% if hideDates == 1%}
+
+{% for p in line_item.properties %}
+		{% if p.first contains '_Early bird discount'  %}
+ {% capture earlyNote %}{{ p |first |remove: '_' }}: {{ p |last }}{% endcapture %}
+ 
+ {% endif %}  
+{% if line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+   {% assign paidDates = line_item.variant.title %}
+   {%if  p.first contains 'Ticket Type' %}
+     {% assign line_admit = p.last %}
+	 {% endif %}
+	 
+	 {% unless p.first contains '_' %}
+	 {% capture line_descriptions %}
+	  {{ line_descriptions }}
+   <p style="float: left;     margin:  0 !important;  width: 100%;">{{ p.first }}: {{ p.last }}  </p><br/>
+     {% endcapture %}
+	 {% endunless %}
+    {% else %}
+	{% if p.first contains 'Dates' %}
+     {% assign paidDates = p.last %}
+    {% elsif  p.first == 'Ticket Type' %}
+     {% assign line_admit = p.last %}
+    {% elsif p.first contains 'Location'%}
+     {% assign location = p.last | split: ',' |first %}
+     {% assign venue = p.last | split: ',' |last %}
+    {% else %}
+	{% unless p.first contains '_' %}
+	 {% capture line_descriptions %}
+	  {{ line_descriptions }}
+   <p style="float: left;     width: 100%;">{{ p.first }}: {{ p.last }}  </p><br/>
+     {% endcapture %}
+	 {% endunless %}
+    {% endif %}
+	{% endif %}
+{% if line_admit != blank %}
+    {% assign admit = line_item.variant.title | split: '/' | first %}
+ {% else %}
+  {% assign admit = line_item.variant.title | split: '/' | first %}
+ {% endif %}
+{% endfor %}
+{% for a in (1..line_item.quantity) %}
+{% capture ticket_id %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}{% endcapture %}
+         {% capture ticketsOrder %}
+          {{ ticketsOrder }}
+<div style="float: left; width: 100%; border: 1px solid black; margin: 10px 0;height: 59.45mm;">  
+  {% for tag in line_item.product.tags %}
+   {% if tag contains "event_location" %}
+    {% assign location = tag |replace: 'event_location:' %}
+   {% elsif tag contains 'event_venue' %}
+   {% assign venue = tag| remove: 'event_venue:' %}
+   
+   {% elsif tag contains 'event_date_string' %}
+   {% assign dates = tag| remove: 'event_date_string:' %}
+  {% endif %}
+ {% endfor %}
+
+ <table style="margin: 0;  width: calc(100% -  10px);">
+ <tr>
+ <td rowspan="2" style="width: 20%; position: relative; text-align: left; vertical-align: top;padding: 10px;"> 
+ <img src="https://cdn.shopify.com/s/files/1/2505/7816/files/{% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}vip{% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}house{%elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |' %}demo2{%else%}hide-dates{%endif%}.jpg" style="max-height: 53.5mm;"/>
+ </td>
+ <td colspan="2">
+ <p style="float: left; display: block; text-align: left; margin: 5px;"><b style=" font-size: 20px!important;">{{ line_item.product.title |remove: 'VIP |' |remove: 'HOUSE |' |remove: 'House |' |remove: 'WORKSHOP |' |remove: 'Workshop |' |replace: '|', '-' | truncate: 133}}</b></p>
+ </td>
+ </tr>
+ <tr>
+ <td style="width: 50%; text-align: left; vertical-align: top;padding: 0 20px; padding-left: 5px;">
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ venue }} - {{ location }}</p>
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ dates }} </p>
+  {{ line_descriptions }}
+  {% if discounts_validate == 'false' %}
+   <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{earlyNote}}</p>
+   {% endif %}
+ <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>BOOKING:</b> {{ticket_id}} </p>
+<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>TICKET TYPE:</b> {{admit}} </p>
+   </td>
+ <td style="width: 29%;vertical-align: top;padding: 0 10px;position:  relative;top: -10px;">
+  {% assign qr_code_url = 'https://ichf-events.default.ichfevents.uk0.bigv.io/?bcid=qrcode&text='  | url_decode %} 
+  
+  {% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}
+  <b> VIP ticket</b>
+ {% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}
+ <b> HOUSE ticket</b>
+ {% elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+ <b> WORKSHOP ticket</b>
+ {% else %}
+ <b> REGULAR ticket</b>
+  {% endif %}
+  <p style="margin: 0">
+  {% unless line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+  Ticket Type: <span style="font-size: 16px; text-transform: uppercase">{{ admit }}</span> </br>  
+  {% endunless %}
+  </p>
+  <p style="margin: 5px auto">
+  1 DAY ONLY
+  </p>
+  <img src="{{ qr_code_url }}{{ ticket_id | url_encode }}{% if count > 0 %}{{ discount_codes }}{% endif %}" height="100" width="100" class="order-list__qr-code" />
+  </td>
+ </tr>
+ </table>
+</div>
+<div style="width: 100%; position: relative; border-bottom: 1mm dashed grey; margin: 2mm 0; float: left">
+<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/nojica.png?11924686762284366152"style="position: absolute; top: 0;    transform: translateY(calc(-50% + 2px));; left: 0;"/>
+</div> 
+         {% endcapture %}
+
+		 {% endfor %}
+		 
+{% endif %}
+
+{% endfor %}
+
+{% for line_item in line_items %}
+
+	{% if line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}
+	
+		{% assign splittedWeekDays = weekdays | split: ',' %}
+
+		{% for a in (1..line_item.quantity) %}
+
+			{% assign admit = ''%}
+			{% assign line_admit = ''%}
+			{% assign line_descriptions = ''%}
+			{% assign location = '' %}
+			{% assign earlyNote = '' %}
+			{% assign venue = '' %}
+			{% assign counter = counter |plus: 1 %}
+			{% assign hideDates = 0 %}
+
+			{% for p in line_item.properties %}
+
+				{% if p.first contains '_Early bird discount'  %}
+
+					{% capture earlyNote %}{{ p |first |remove: '_' }}: {{ p |last }}{% endcapture %}
+
+				{% endif %}  
+
+				{% unless p.first contains 'Event duration' %}
+
+					{% unless p.first contains 'Location' %}
+
+						{% if p.first contains '_hide dates' %}
+
+							{% assign hideDates = 1 %}
+
+						{% endif %}
+
+					
+
+						{% if p.first contains 'Dates' %}
+
+							{% assign paidDates = p.last %}
+							
+						{% elsif  p.first == 'Ticket Type' %}
+								
+							{% assign line_admit = p.last %}
+
+						{% elsif p.first contains 'Location'%}
+
+							{% assign location = p.last | split: ',' |first %}
+							{% assign venue = p.last | split: ',' |last %}
+
+						{% else %}
+
+							{% unless p.first contains '_' %}
+								{% capture line_descriptions %}
+									{{ line_descriptions }}
+									<p style="float: left;     width: 100%;">{{ p.first }}: {{ p.last }}  </p><br/>
+								{% endcapture %}
+							{% endunless %}
+								
+						{% endif %}
+					
+					{% endunless %}
+				
+				{% endunless %}
+
+			{% endfor %}
+	
+			{% if line_admit != blank %}
+	
+				{% assign admit = line_item.variant.title | split: '/' | first %}
+		
+			{% else %}
+	
+				{% assign admit = line_item.variant.title | split: '/' | first %}
+		
+			{% endif %}
+						 
+
+			{% capture ticket_id %}
+				{{ order_number }}-{{ line_item.id }}-{{ 1 | prepend: '0000' | slice: -4, 4 }}
+			{% endcapture %}
+			
+			{% capture houseTicketsOrder %}
+			
+				{{ houseTicketsOrder }}
+		
+				{% if hideDates == 0 %}
+		
+					<div style="float: left; width: 100%; border: 1px solid black; margin: 10px 0; height: 59.45mm;">  
+					
+						{% for tag in line_item.product.tags %}
+						
+							{% if tag contains "event_location" %}
+								
+								{% assign location = tag |replace: 'event_location:' %}
+
+							{% elsif tag contains 'event_venue' %}
+
+								{% assign venue = tag| remove: 'event_venue:' %}
+
+							{% elsif tag contains 'event_date_string' %}
+
+								{% assign dates = tag| remove: 'event_date_string:' %}
+
+							{% endif %}
+
+						{% endfor %}
+
+						<table style="margin: 0;  width: calc(100% -  10px);">
+							<tr>
+								<td rowspan="2" style="width: 20%; position: relative; text-align: left; vertical-align: top;padding: 10px;"> 
+									<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/{% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}vip{% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}house{%elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |' %}demo2{%else%}{{paidDateDay |handleize }}{%endif%}.jpg" style="max-height: 53.5mm;"/>
+								</td>
+								<td colspan="2">
+									<p style="float: left; display: block; text-align: left; margin: 5px;"><b style=" font-size: 20px!important;">{{ line_item.product.title |remove: 'HOUSE |' |remove: 'House |'|replace: '|', '-'}}</b></p>
+								</td>
+							</tr>
+							<tr>
+								<td style="width: 50%; text-align: left; vertical-align: top;padding: 0 20px; padding-left: 5px;">
+									<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ venue }} - {{ location }}</p>
+									<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ dates }} </p>
+										{{ line_descriptions }}
+										
+										{% if discounts_validate == 'false' %}
+										
+											<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{earlyNote}}</p>
+											
+										{% endif %}
+										
+										<p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>BOOKING:</b> {{ticket_id}} </p>
+										
+								</td>
+							
+								<td style="width: 29%;vertical-align: top;padding: 0 10px;position:  relative;top: -10px;">
+									{% assign qr_code_url = 'https://ichf-events.default.ichfevents.uk0.bigv.io/?bcid=qrcode&text='  | url_decode %} 
+
+										<b> HOUSE ticket</b>
+								
+									
+									<p style="margin: 0">
+									
+										Ticket Type: <span style="font-size: 16px; text-transform: uppercase">{{ admit }}</span> </br>  
+</p><img src="{{ qr_code_url }}{{ ticket_id | url_encode }}{% if count > 0 %}{{ discount_codes }}{% endif %}|day:{{ paidDate |replace: " ", "_" }}" height="100" width="100" class="order-list__qr-code" />
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div style="width: 100%; position: relative; border-bottom: 1mm dashed grey; margin: 2mm 0; float: left">
+						<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/nojica.png?11924686762284366152"style="position: absolute; top: 0;    transform: translateY(calc(-50% + 2px));; left: 0;"/>
+					</div> 
+		
+				{% endif %}
+
+			{% endcapture %}
+
+
+		{% endfor %}
+
+
+	{% endif %}
+
+{% endfor %}
+
+<div style="width: 95%; margin: auto; ">
+<div style="text-align: center;margin: 0 0 1em 0;" >
+<div style="border: 2px solid grey; overflow: hidden;  margin-bottom: 13px; {% if comppetitionCount > 0 %} height: 130mm;{% else %} height: 66.5mm; {% endif %}">
+ <h1 style="margin: 5px 20px 0; text-align: left;float: left;color: #cc0066; width: 100%; display: block">Your Receipt</h1>
+
+  <div style="width: 30%; float: left;">
+ <div style="margin:0 20px; float: left;padding: 0em; text-align: left;">
+    <strong>{{ customer.name }}</strong><br/>
+    {% if shipping_address.company != blank %}
+      {{ shipping_address.company }}
+	  <br/>
+	  {% elsif billing_address.company != blank %}
+	 {{ billing_address.company }}
+	 <br/>
+    {% endif %}
+	
+	{% if shipping_address.street != blank  %}
+      {{ shipping_address.street }}
+	  <br/>
+	  {% else %}
+	 {{ billing_address.street }}
+	 <br/>
+    {% endif %}
+	
+    {% if shipping_address.city != blank  %}
+      {{ shipping_address.city }}
+	  <br/>
+	  {% else %}
+	 {{ billing_address.city }}
+	 <br/>
+    {% endif %}
+    {% if shipping_address.province_code != blank %}{{ shipping_address.province_code }}{% else %}{{ shipping_address.province }}{% endif %}
+
+	{% if shipping_address.zip != blank  %}
+      {{ shipping_address.zip | upcase}}
+	  {% else %}
+	 {{ billing_address.zip | upcase}}
+    {% endif %}
+	<br/>
+    {% if shipping_address.country != blank  %}
+      {{ shipping_address.country }}
+	  <br/>
+	  {% else %}
+	 {{ billing_address.country }}
+	 <br/>
+    {% endif %}
+    {% unless shipping_address.company %}<br/>{% endunless %}
+    {% unless shipping_address.phone %}<br/>{% endunless %}
+  </div>
+</div>
+
+
+
+  <div style="width: 30%; float: left">
+  <p style="margin: 0"> Your Booking Ref: </p>
+<p style="margin: 0"> {{ order_number }}</p>
+
+</div>
+  <div style="width: 30%; float: left">
+  <p style="margin: 0"> Thank you for the Payment of: {{ total_price | money }}</p>
+<p style="margin: 0">Dated: {{ created_at | date: "%d/%m/%Y" }}</p>
+
+<p style="margin: 0">Inclusive of VAT at the Standard RateVAT Reg. No. 291 7701 44</p>
+</div>
+
+<div style="float: left; max-width: 100%; margin: 0 20px">
+<h4>Please detatch receipt and retain for your records.  </h4>                       <p style="font-size: 10px">
+International Craft & Hobby fair Limited, Dominic House, Seaton Road, Highcliffe, Dorset BH23 5HW    Tel:(Ticket enquiries) 01425 277988  Tel:(General enquiries) 01425 272711  Fax: 01425 279369                                                                                                                                                      e-mail: info@ichf.co.uk   website: www.ichfevents.co.uk
+</p>
+</div>
+</div>
+<div style="width: 100%; position: relative; border-bottom: 1mm dashed grey; margin: 2mm 0; float: left">
+<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/nojica.png?11924686762284366152"style="position: absolute; top: 0;    transform: translateY(calc(-50% + 2px));; left: 0;"/>
+</div> 
+
+{{ competitions }}
+
+{{ ticketsOrder }}
+
+    {% comment %} merchandise {% endcomment %}
+
+  {% for line_item in line_items %}
+      
+    
+    {% if line_item.product.type == 'Event -> Tickets' or line_item.product.type == 'Event -> Workshops' or line_item.product.type == 'Event -> House' %}
+      <div style="display: none;">
+    {% else %}
+    <div>
+    {% if line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+      {% assign counter = counter |plus: 1 %}
+      {% capture ticket_id %}{{ order_number }}-{{ line_item.id }}-{{ counter | prepend: '0000' | slice: -4, 4 }}{% endcapture %}
+      
+        <div style="float: left; width: 100%; border: 1px solid black; margin: 10px 0; height: 59.45mm;">  
+  {% for tag in line_item.product.tags %}
+   {% if tag contains "event_location" %}
+    {% assign location = tag |replace: 'event_location:' %}
+   {% elsif tag contains 'event_venue' %}
+   {% assign venue = tag| remove: 'event_venue:' %}
+   
+   {% elsif tag contains 'event_date_string' %}
+   {% assign dates = tag| remove: 'event_date_string:' %}
+  {% endif %}
+ {% endfor %}
+ <table style="margin: 0;  width: calc(100% -  10px);">
+ <tr>
+  <td rowspan="2" style="width: 20%; position: relative; text-align: left; vertical-align: top;padding: 10px;"> 
+ <img src="https://cdn.shopify.com/s/files/1/2505/7816/files/{% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}vip{% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}house{%elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |' %}demo2{%elsif line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |' %}merchandise{%else%}{{paidDateDay |handleize }}{%endif%}.jpg" style="max-height: 53.5mm;"/>
+ </td>
+ <td colspan="2">
+ <p style="float: left; display: block; text-align: left; margin: 5px;">
+  <b style=" font-size: 20px!important;">
+    {% if line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+      {% assign merchttl = line_item.product.title | split: '|' %}
+      {{ merchttl[1] }}
+      {{ merchttl[2] }}
+    {% else %}
+      {{ line_item.product.title |remove: 'VIP |' |remove: 'HOUSE |' |remove: 'House |' |remove: 'WORKSHOP |' |remove: 'Workshop |' |remove: 'MERCHANDISE |' |remove: 'Merchandise |' |replace: '|', '-'}}
+    {% endif %}
+  </b>
+  </p>
+ </td>
+ </tr>
+ <tr>
+ <td style="width: 50%; text-align: left; vertical-align: top;padding: 0 20px; padding-left: 5px;">
+  {% unless line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ venue }} - {{ location }}</p>
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{ dates }} </p>
+  {% endunless %}
+  {{ line_descriptions }}
+    {% if discounts_validate == 'false' %}
+    {% unless line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+   <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> {{earlyNote}}</p>
+   {% endunless %}
+   {% endif %}
+   {% unless line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>VALID:</b> {{paidDate}} ONLY </p> 
+  {% endunless %}
+ {% if line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>PRICE PER ITEM:</b> {{ line_item.product.price | times: 100 | money }} </p>
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>NAME:</b> {{ customer.name }} </p>
+ {% endif %}
+ <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>BOOKING:</b> {{ticket_id}} </p>
+ {% unless line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+  <p style="text-align: left; float: left; width: 100%; margin: 0; margin-bottom: 0;"> <b>TICKET TYPE:</b> {{admit}} </p>
+  {% endunless %}
+   </td>
+ <td style="width: 29%;vertical-align: top;padding: 0 10px;position:  relative;top: -10px;">
+  {% assign qr_code_url = 'https://ichf-events.default.ichfevents.uk0.bigv.io/?bcid=qrcode&text='  | url_decode %} 
+  
+  {% if line_item.product.title contains 'VIP |' or line_item.product.title contains 'Vip |' %}
+  <b> VIP ticket</b>
+ {% elsif line_item.product.title contains 'HOUSE |' or line_item.product.title contains 'House |' %}
+ <b> HOUSE ticket</b>
+ {% elsif line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+ <b> WORKSHOP ticket - kek</b>
+ {% elsif line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+ <b></b>
+ {% else %}
+ <b> REGULAR ticket</b>
+  {% endif %}
+  {% if line_item.product.title contains 'MERCHANDISE |' or line_item.product.title contains 'Merchandise |'%}
+    <img src="{{ qr_code_url }}{{ ticket_id | url_encode }}{% if count > 0 %}{{ discount_codes }}{% endif %}" height="100" width="100" class="order-list__qr-code" />
+  {% else %}
+    <p style="margin: 0">
+      {% unless line_item.product.title contains 'WORKSHOP |' or line_item.product.title contains 'Workshop |'%}
+      Ticket Type: <span style="font-size: 16px; text-transform: uppercase">{{ admit }}</span> </br>  
+      
+      {% endunless %}
+      on {{paidDate}} only</p><img src="{{ qr_code_url }}{{ ticket_id | url_encode }}{% if count > 0 %}{{ discount_codes }}{% endif %}|day:{{ paidDate |replace: " ", "_" }}" height="100" width="100" class="order-list__qr-code" />
+  {% endif %}
+ </td>
+ </tr>
+ </table>
+</div>
+<div style="width: 100%; position: relative; border-bottom: 1mm dashed grey; margin: 2mm 0; float: left">
+<img src="https://cdn.shopify.com/s/files/1/2505/7816/files/nojica.png?11924686762284366152"style="position: absolute; top: 0;    transform: translateY(calc(-50% + 2px));; left: 0;"/>
+</div>
+      
+    {% endif %}
+    </div>
+  {% endif %}
+  {% endfor %}
+
+  {% comment %} merchandise {% endcomment %}
+
+{{ houseTicketsOrder }}
+
+{% if note %}
+  <h3 style="margin: 0 0 1em 0; text-align: center">Note</h3>
+  <p style="text-align: center;">{{ note }}</p>
+{% endif %}
+
+<div style="width: 100%; float: left;"><p style="text-align: center;">If you have any questions, contact us on <u>{{ shop.email }}</u></p></div>
+</div>
+</div>
+<style>
+p{
+margin: 0;
+margin-bottom: 5px;
+}
+</style>
