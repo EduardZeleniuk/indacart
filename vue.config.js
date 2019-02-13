@@ -8,7 +8,7 @@ module.exports = {
     }
   },
   // disable hashes in filenames
-  // filenameHashing: false,
+  filenameHashing: false,
   chainWebpack: config => {
     config.module
       .rule("vue")
@@ -17,16 +17,16 @@ module.exports = {
       .options({ /* ... */ });
 
     if (process.env.NODE_ENV === 'production') {
-      // delete HTML related webpack plugins
-      // config.plugins.delete('html')
-      // config.plugins.delete('preload')
-      // config.plugins.delete('prefetch')
+      //delete HTML related webpack plugins
+      config.plugins.delete('html')
+      config.plugins.delete('preload')
+      config.plugins.delete('prefetch')
     }
   },
   configureWebpack: {
     optimization: {
       splitChunks: false
-    },
+    }
   },
   css: {
     extract: false
