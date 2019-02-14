@@ -20,17 +20,20 @@
 <script>
   import Timer from './components/timer'
 
-export default {
-  components: {
-    Timer
-  },
+  export default {
+    components: {
+      Timer
+    },
 
   created () {
     this.$store.dispatch('setTime')
+    this.$store.dispatch('popupShow', true)
 
-    let serialObj = JSON.stringify(this.$store.getters.getLocalStorageData);
+    if (!this.$localStorage.get('indacart')) {
+      let serialObj = JSON.stringify(this.$store.getters.getLocalStorageData);
 
-    this.$localStorage.set('indacart', serialObj)
+      this.$localStorage.set('indacart', serialObj)
+    }
   },
   
   data () {

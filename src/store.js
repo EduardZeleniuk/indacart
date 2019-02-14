@@ -9,13 +9,20 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     delayShowPopup: 0,
-    time: 0,
-    localStorageData: { startDate: null, data: null }
+    popupShow: false,
+    time: {},
+    localStorageData: { 
+      data: null,
+      startDate: null
+    }
   },
 
   getters: {
     getDelayShowPopup (state) {
       return state.delayShowPopup
+    },
+    getPopupShow (state) {
+      return state.popupShow
     },
     getTime (state) {
       return state.time
@@ -27,18 +34,31 @@ export default new Vuex.Store({
   
   mutations: {
     setTime (state, payload) {
-      state.time = (payload.hours * 60 + payload.minutes)
+      state.time = {
+        hours: payload.hours || 0,
+        minutes: payload.minutes || 0
+      }
+    },
+    setPopupShow (state, payload) {
+      state.popupShow = payload
     }
   },
 
   actions: {
+    popupShow ({commit}, payload) {
+      commit('setPopupShow', payload)
+    },
     async setTime ({commit}, payload){
       try {
         // const time = await axios.get(apiUrl)
-        const time = {hours: 10, minutes: 35 }
+        const time = {
+          hours: 0,
+          minutes: 1
+        }
+        
         commit('setTime', time)
       } catch (error) {
-        // console.log(error.message)
+        console.log(error.message)
       }
     }
   }
