@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
-// import axios from 'axios'
+import axios from 'axios'
 
 Vue.use(Vuex)
 
@@ -8,9 +8,13 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    delayShowPopup: 0,
-    popupShow: false,
-    time: {},
+    popup: {
+      popupShow: false,
+      delayShowPopup: 0,
+      time: 100,
+      show: true
+    },
+    popupShow: true,
     localStorageData: { 
       data: null,
       startDate: null
@@ -18,48 +22,42 @@ export default new Vuex.Store({
   },
 
   getters: {
-    getDelayShowPopup (state) {
-      return state.delayShowPopup
+    popup (state) {
+      return state.popup
     },
-    getPopupShow (state) {
-      return state.popupShow
-    },
-    getTime (state) {
-      return state.time
-    },
-    getLocalStorageData (state) {
+
+    localStorageData (state) {
       return state.localStorageData
     }
   },
   
   mutations: {
-    setTime (state, payload) {
-      state.time = {
-        hours: payload.hours || 0,
-        minutes: payload.minutes || 0
-      }
+    SET_POPUP (state, popup) {
+      state.popup = popup
     },
-    setPopupShow (state, payload) {
-      state.popupShow = payload
+
+    SET_POPUP_SHOW (state, payload) {
+      state.popup.show = payload
+    },
+
+    SET_LOCAL_STORAGE_DATA (state, payload) {
+      state.localStorageData = payload
     }
   },
 
   actions: {
-    popupShow ({commit}, payload) {
-      commit('setPopupShow', payload)
-    },
-    async setTime ({commit}, payload){
+    async fetchPopup ({commit}, productId) {
       try {
-        // const time = await axios.get(apiUrl)
-        const time = {
-          hours: 0,
-          minutes: 1
-        }
-        
-        commit('setTime', time)
+        // const response = await axios.get(apiUrl)
+
+        // if (response.data.success) {
+          // const popup = respons.data.popup
+          // popup.show = true
+          // commit(SET_POPUP, respons.data.popup)
+        // }
       } catch (error) {
         console.log(error.message)
       }
     }
   }
-});
+})

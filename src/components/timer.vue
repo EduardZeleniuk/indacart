@@ -7,12 +7,14 @@
 
 <script>
   export default {
+    props: [
+    'time'
+    ],
     data () {
       return {
         isRunning: false,
         timer: null,
-        temp: '00:00:00',
-        time: this.$store.getters.getTime
+        temp: '00:00',
       }
     },
 
@@ -21,7 +23,7 @@
         let returnObj
         let serialObj
 
-        if  (this.$localStorage.get('indacart')) {
+        if (this.$localStorage.get('indacart')) {
           returnObj = JSON.parse(this.$localStorage.get('indacart'))      
 
           if ( !returnObj.startDate) {
@@ -49,17 +51,15 @@
         return startDate
       },
 
-      getEndDate (h, m, startDate) {
+      getEndDate (time, startDate) {
         let endDate = startDate
-        endDate.setHours(endDate.getHours() + h); 
-        endDate.setMinutes(endDate.getMinutes() + m);
+        endDate.setSeconds(endDate.getSeconds() + time);
 
         return endDate;
       },
 
       start () {
-        let startDate = this.getStartDate()
-        let endDate = this.getEndDate(this.time.hours, this.time.minutes, this.getStartDate()) 
+        let endDate = this.getEndDate(this.time, this.getStartDate()) 
         let time = (endDate - new Date())/1000
 
         this.isRunning = true
@@ -70,13 +70,9 @@
             if (time > 0) {
               time--
 
-              let hours = parseInt(time/(60*60))
-              let minutes = parseInt(time/60)%60
+              let minutes = parseInt(time/60)
               let seconds = parseInt(time)%60
 
-              if (hours < 10) {
-                hours = "0" + hours
-              }
               if (minutes < 10) {
                 minutes = "0" + minutes
               }
@@ -84,23 +80,22 @@
                 seconds = "0" + seconds
               }
 
-              this.temp = hours + ':' + minutes + ":" + seconds
+              this.temp = minutes + ":" + seconds
             } else {
               this.reset()
-              this.$store.dispatch('popupShow', false)
+              this.$store.commit('SET_POPUP_SHOW', false)
             }
           }, 1000 ) 
         } else {
-            this.$store.dispatch('popupShow', false)
+            this.$store.commit('SET_POPUP_SHOW', false)
         }
       },
 
       reset () {
         this.isRunning = false
         clearInterval(this.timer)
-        this.timer = null
-        this.time = 0
-        this.temp = '00:00:00'
+        this.timer = null 
+        this.temp = '00:00'
 		  }
     },
 
@@ -108,5 +103,5 @@
       this.setLocalStorageStartDate ()
       this.start()
     }
-  };
+  }
 </script>
